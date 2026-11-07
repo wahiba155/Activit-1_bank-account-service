@@ -1,7 +1,11 @@
 package org.moussaoui.activitepratique01_ms.web;
 
+import org.moussaoui.activitepratique01_ms.dto.BankAccountRequestDTO;
+import org.moussaoui.activitepratique01_ms.dto.BankAccountResponseDTO;
 import org.moussaoui.activitepratique01_ms.entities.BankAccount;
+import org.moussaoui.activitepratique01_ms.mappers.AccountMapper;
 import org.moussaoui.activitepratique01_ms.repositories.BankAccountRepository;
+import org.moussaoui.activitepratique01_ms.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -11,12 +15,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api")
 public class AccountRestController {
+
     private BankAccountRepository bankAccountRepository;
+    private AccountService accountService;
 
+    private AccountMapper accountMapper;
 
-    public AccountRestController(BankAccountRepository bankAccountRepository) {
+    public AccountRestController(BankAccountRepository bankAccountRepository, AccountService accountService, AccountMapper accountMapper) {
         this.bankAccountRepository = bankAccountRepository;
-
+        this.accountService = accountService;
+        this.accountMapper = accountMapper;
     }
 
     @GetMapping("/bankAccounts")
@@ -24,17 +32,16 @@ public class AccountRestController {
         return bankAccountRepository.findAll();
     }
 
-    @PostMapping("/bankAccounts")
-    public BankAccount save(@RequestBody BankAccount bankAccount) {
-        if (bankAccount.getId()==null) bankAccount.setId(UUID.randomUUID().toString());
-        return bankAccountRepository.save(bankAccount);
-    }
-
-
     @GetMapping("/bankAccounts/{id}")
     public BankAccount bankAccount(@PathVariable String id) {
         return bankAccountRepository.findById(id).orElseThrow(()->new RuntimeException(String.format("Bank account not found")));
     }
+
+    @PostMapping("/bankAccounts")
+    public BankAccountResponseDTO save(@RequestBody BankAccountRequestDTO requestDTO) {
+        return accountService.addAccount(requestDTO);
+    }
+
     @PutMapping("/bankAccounts/{id}")
     public BankAccount update(@PathVariable String id,@RequestBody BankAccount bankAccount) {
         BankAccount account=bankAccountRepository.findById(id).orElse(null);
@@ -49,6 +56,4 @@ public class AccountRestController {
     public void deleteAccount(@PathVariable String id) {
         bankAccountRepository.deleteById(id);
     }
-
-
 }
